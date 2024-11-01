@@ -21,7 +21,6 @@ try:
     character_img = cv2.resize(character_img, (150, 150))
 except Exception as e:
     logger.error(f"Error loading character image: {str(e)}")
-    # Use a fallback solid color image if the character image fails to load
     character_img = np.ones((150, 150, 3), dtype=np.uint8) * 255
 
 # Camera configuration
@@ -157,14 +156,6 @@ def gen_frames():
             camera.release()
             logger.info("Camera released")
 
-@app.errorhandler(404)
-def not_found_error(error):
-    return render_template('404.html'), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    return render_template('500.html'), 500
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -173,6 +164,10 @@ def index():
 def video_feed():
     return Response(gen_frames(), 
                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204  # Return a No Content response
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
