@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🎉 Happy Birthday! 🎂</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            margin-top: 20px;
+            position: relative;
+            max-width: 800px;
+            width: 95%;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        .container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            animation: particle-animation 1s ease-out forwards;
+        }
+
+        @keyframes particle-animation {
+            0% { 
+                transform: scale(1) translate(0, 0);
+                opacity: 1;
+            }
+            100% { 
+                transform: scale(0) translate(var(--x), var(--y));
+                opacity: 0;
+            }
+        }
+
+        .title {
+            color: white;
+            text-align: center;
+            font-size: 2em;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .instructions {
+            color: white;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">🎉 Happy Birthday! 🎂</h1>
+    <div class="instructions">
+        Allow camera access and show your face to see the magic! ✨
+    </div>
+    <div class="container">
+        <img src="{{ url_for('video_feed') }}" alt="Birthday Camera Feed">
+    </div>
+
+    <script>
+        function createParticles() {
+            const container = document.querySelector('.container');
+            const rect = container.getBoundingClientRect();
+
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = Math.random() * 10 + 5 + 'px';
+                particle.style.height = particle.style.width;
+                
+                const x = Math.random() * rect.width;
+                const y = Math.random() * rect.height;
+                
+                particle.style.left = x + rect.left + 'px';
+                particle.style.top = y + rect.top + 'px';
+                
+                particle.style.setProperty ('--x', Math.random() * 200 - 100 + 'px');
+                particle.style.setProperty('--y', Math.random() * 200 - 100 + 'px');
+                
+                container.appendChild(particle);
+            }
+        }
+
+        createParticles();
+    </script>
+</body>
+</html>
