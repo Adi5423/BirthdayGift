@@ -49,52 +49,71 @@ def overlay_character(frame, face_x, face_y, face_w, face_h):
     return frame
 
 def gen_frames():
-    camera = cv2.VideoCapture(0)
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    try:
+        camera = cv2.VideoCapture(0)
+        if not camera.isOpened():
+            raise Exception("Could not open camera")
+        
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        
+        # Initialize particle system
+        particles = []
+        last_detection_time = 0
+        particle_interval = 0.1  # seconds between particle bursts
+        
+        while True:
+            success, frame = camera.read()
+            if not success:
+                break
+                
+            # Flip frame for mirror effect
+            frame = cv2.flip(frame, 1)
+            
+            # Detect faces
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+            
+            current_time = time.time()
+            
+            for (x, y, w, h) in faces:
+                # Draw face rectangle
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
+                
+                # Add character behind face
+                frame = overlay_character(frame, x, y, w, h)
+                
+                # Add birthday text
+                frame = add_birthday_text(frame, x, y)
+                
+                # Add particles at intervals
+                if current_time - last_detection_time > particle_interval:
+                    # Add multiple particles around the face
+                    for _ in range(5):
+                        particle_x = x + random.randint(0, w)
+                        particle_y = y + random.randint(0, h)
+                        frame = create_particle(frame, particle_x, particle_y)
+                    last_detection_time = current_time
+            
+            # Convert frame to jpg
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
     
-    # Initialize particle system
-    particles = []
-    last_detection_time = 0
-    particle_interval = 0.1  # seconds between particle bursts
-    
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
-            
-        # Flip frame for mirror effect
-        frame = cv2.flip(frame, 1)
-        
-        # Detect faces
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.1, 4)
-        
-        current_time = time.time()
-        
-        for (x, y, w, h) in faces:
-            # Draw face rectangle
-            cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
-            
-            # Add character behind face
-            frame = overlay_character(frame, x, y, w, h)
-            
-            # Add birthday text
-            frame = add_birthday_text(frame, x, y)
-            
-            # Add particles at intervals
-            if current_time - last_detection_time > particle_interval:
-                # Add multiple particles around the face
-                for _ in range(5):
-                    particle_x = x + random.randint(0, w)
-                    particle_y = y + random.randint(0, h)
-                    frame = create_particle(frame, particle_x, particle_y)
-                last_detection_time = current_time
-        
-        # Convert frame to jpg
-        ret, buffer = cv2.imencode('.jpg', frame)
-        frame = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+    except Exception as e:
+        print(f"Error in gen_frames: {str(e)}")
+        return
+    finally:
+        if 'camera' in locals():
+            camera.release()
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('500.html'), 500
 
 @app.route('/')
 def index():
@@ -106,4 +125,5 @@ def video_feed():
                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Development server
+    app.run(debug=False, host='0.0.0.0')
