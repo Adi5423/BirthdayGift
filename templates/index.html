@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎉 Happy Birthday! 🎂</title>
     <style>
         body {
@@ -12,13 +14,14 @@
             flex-direction: column;
             align-items: center;
             font-family: Arial, sans-serif;
+            overflow-x: hidden;
         }
 
         .container {
             margin-top: 20px;
             position: relative;
-            max-width: 800px;
             width: 95%;
+            max-width: 800px;
             border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 0 20px rgba(0,0,0,0.3);
@@ -31,7 +34,7 @@
         }
 
         .particle {
-            position: absolute;
+            position: fixed;
             pointer-events: none;
             background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
             border-radius: 50%;
@@ -55,6 +58,7 @@
             font-size: 2em;
             margin: 20px 0;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            padding: 0 10px;
         }
 
         .instructions {
@@ -64,6 +68,18 @@
             padding: 10px;
             background: rgba(0,0,0,0.2);
             border-radius: 10px;
+            font-size: 0.9em;
+            max-width: 90%;
+        }
+
+        @media (max-width: 600px) {
+            .title {
+                font-size: 1.5em;
+            }
+
+            .instructions {
+                font-size: 0.8em;
+            }
         }
     </style>
 </head>
@@ -78,7 +94,7 @@
 
     <script>
         function createParticles() {
-            const container = document.querySelector('.container');
+            const container = document.body;
             const rect = container.getBoundingClientRect();
 
             for (let i = 0; i < 30; i++) {
@@ -87,20 +103,31 @@
                 particle.style.width = Math.random() * 10 + 5 + 'px';
                 particle.style.height = particle.style.width;
                 
-                const x = Math.random() * rect.width;
-                const y = Math.random() * rect.height;
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
                 
-                particle.style.left = x + rect.left + 'px';
-                particle.style.top = y + rect.top + 'px';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
                 
-                particle.style.setProperty ('--x', Math.random() * 200 - 100 + 'px');
+                particle.style.setProperty('--x', Math.random() * 200 - 100 + 'px');
                 particle.style.setProperty('--y', Math.random() * 200 - 100 + 'px');
                 
                 container.appendChild(particle);
+
+                setTimeout(() => {
+                    particle.remove();
+                }, 1000);
             }
         }
 
-        createParticles();
+        setInterval(createParticles, 1000);
+
+        window.addEventListener('resize', () => {
+            // Clear existing particles
+            document.querySelectorAll('.particle').forEach(p => p.remove());
+            // Create new particles
+            createParticles();
+        });
     </script>
 </body>
 </html>
